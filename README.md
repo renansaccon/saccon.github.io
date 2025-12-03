@@ -1,0 +1,77 @@
+# saccon.github.io
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard MQTT</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f2f2f2; }
+    h1 { color: #333; }
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    button { margin: 10px; padding: 10px 20px; }
+    #log { white-space: pre-wrap; background: #000; color: #0f0; padding: 10px; height: 200px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+
+  <h1>Painel MQTT</h1>
+
+  <div class="card">
+    <h2>Controle do LED</h2>
+    <button onclick="ligar()">Ligar LED</button>
+    <button onclick="desligar()">Desligar LED</button>
+  </div>
+
+  <div class="card">
+    <h2>Dados recebidos</h2>
+    <div id="log"></div>
+  </div>
+
+<script>
+  // *********************
+  // CONFIGURAÇÃO DO MQTT
+  // *********************
+  const host = "test.mosquitto.org";
+  const port = 8081; // Porta WebSocket
+  const topicSub = "/IoT1/#";  // Assina tudo do seu ESP
+  const topicLed = "/IoT1/led"; // Tópico para Ligar/Desligar LED
+
+  // Conecta no broker MQTT WebSocket
+  const client = mqtt.connect(`wss://${host}:${port}/mqtt`);
+
+  client.on("connect", () => {
+    addLog("Conectado ao broker MQTT");
+    client.subscribe(topicSub);
+    addLog("Assinado: " + topicSub);
+  });
+
+  client.on("message", (topic, message) => {
+    addLog(`📩 ${topic}: ${message}`);
+  });
+
+  function ligar() {
+    client.publish(topicLed, "liga");
+    addLog("📤 Enviado: liga");
+  }
+
+  function desligar() {
+    client.publish(topicLed, "desliga");
+    addLog("📤 Enviado: desliga");
+  }
+
+  function addLog(text) {
+    const log = document.getElementById("log");
+    log.textContent += text + "\n";
+    log.scrollTop = log.scrollHeight;
+  }
+</script>
+
+</body>
+</html>
