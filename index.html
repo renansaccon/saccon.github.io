@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard MQTT</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    body { font-family: Arial, padding: 20px; background: #f2f2f2; }
+    h1 { color: #333; }
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    button { 
+      margin: 10px; 
+      padding: 10px 20px; 
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
+    .off { background-color: #e74c3c; }
+    .on { background-color: #2ecc71; }
+    #log { white-space: pre-wrap; background: #000; color: #0f0; padding: 10px; height: 200px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+
+  <h1>Painel MQTT</h1>
+
+  <div class="card">
+    <h2>Controle da Bomba</h2>
+    <button id="bombaBtn" class="off" onclick="toggleBomba()">Ligar Bomba</button>
+  </div>
+
+  <div class="card">
+    <h2>Dados recebidos</h2>
+    <div id="log"></div>
+  </div>
+
+<script>
+
+  const host = "ec2-35-173-47-250.compute-1.amazonaws.com";
+  const port = 9001;
+  const topicSub = "/IoT1/#";  
+  const topicBomba = "/IoT1/led";
+
+  let bombaLigada = false;
+
+  const client = mqtt.connect(`ws://${host}:${port}/mqtt`);
+
+  client.on("connect", () => {
+    addLog("Conectado ao broker MQTT");
+    client.subscribe(topicSub);
+    addLog("Assinado: " + topicSub);
+  });
+
+  client.on("message", (topic, message) => {
+    addLog(`${topic}: ${message}`);
+  });
+
+  function toggleBomba() {
+    const btn = document.getElementById("bombaBtn");
+
+    if (!bombaLigada) {
+      client.publish(topicBomba, "liga");
+      addLog("Enviado: liga");
+      btn.textContent = "Desligar Bomba";
+      btn.classList.remove("off");
+      btn.classList.add("on");
+      bombaLigada = true;
+    } else {
+      client.publish(topicBomba, "desliga");
+      addLog("Enviado: desliga");
+      btn.textContent = "Ligar Bomba";
+      btn.classList.remove("on");
+      btn.classList.add("off");
+      bombaLigada = false;
+    }
+  }
+
+  function addLog(text) {
+    const log = document.getElementById("log");
+    log.textContent += text + "\n";
+    log.scrollTop = log.scrollHeight;
+  }
+</script>
+
+</body>
+</html>
