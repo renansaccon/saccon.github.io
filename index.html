@@ -45,13 +45,12 @@
 <script>
 
   const host = "ec2-35-173-47-250.compute-1.amazonaws.com";
-  const port = 9001;
-  const topicSub = "/IoT1/#";  
+  const port = 9001; 
   const topicBomba = "/IoT1/led";
 
   let bombaLigada = false;
 
-  const client = mqtt.connect(`ws://${host}:${port}/mqtt`);
+  const client = mqtt.connect(`wss://${host}:${port}/mqtt`);
 
   client.on("connect", () => {
     addLog("Conectado ao broker MQTT");
@@ -92,3 +91,4 @@
 
 </body>
 </html>
+
