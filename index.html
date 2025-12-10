@@ -50,7 +50,7 @@
 
   let bombaLigada = false;
 
-  const client = mqtt.connect(`wss://${host}:${port}/mqtt`);
+  const client = mqtt.connect(`ws://${host}:${port}/mqtt`);
 
   client.on("connect", () => {
     addLog("Conectado ao broker MQTT");
@@ -91,4 +91,5 @@
 
 </body>
 </html>
+
 
