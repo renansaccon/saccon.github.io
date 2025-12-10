@@ -5,7 +5,7 @@
   <title>Dashboard MQTT</title>
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <style>
-    body { font-family: Arial; padding: 20px; background: #f2f2f2; }
+    body { font-family: Arial, padding: 20px; background: #f2f2f2; }
     h1 { color: #333; }
     .card {
       background: white;
@@ -14,7 +14,17 @@
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    button { margin: 10px; padding: 10px 20px; }
+    button { 
+      margin: 10px; 
+      padding: 10px 20px; 
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
+    .off { background-color: #e74c3c; } /* Vermelho para desligado */
+    .on { background-color: #2ecc71; }  /* Verde para ligado */
     #log { white-space: pre-wrap; background: #000; color: #0f0; padding: 10px; height: 200px; overflow-y: auto; }
   </style>
 </head>
@@ -23,9 +33,8 @@
   <h1>Painel MQTT</h1>
 
   <div class="card">
-    <h2>Controle do LED</h2>
-    <button onclick="ligar()">Ligar LED</button>
-    <button onclick="desligar()">Desligar LED</button>
+    <h2>Controle da Bomba</h2>
+    <button id="bombaBtn" class="off" onclick="toggleBomba()">Ligar Bomba</button>
   </div>
 
   <div class="card">
@@ -37,13 +46,15 @@
   // *********************
   // CONFIGURAÇÃO DO MQTT
   // *********************
-  const host = "ec2-44-197-203-194.compute-1.amazonaws.com";
+  const host = "ec2-35-173-47-250.compute-1.amazonaws.com";
   const port = 9001; // Porta WebSocket
-  const topicSub = "/IoT1/#";  // Assina tudo do seu ESP
-  const topicLed = "/IoT1/led"; // Tópico para Ligar/Desligar LED
+  const topicSub = "/IoT1/#";  
+  const topicBomba = "/IoT1/led"; // Tópico para Bomba (antes era LED)
+
+  let bombaLigada = false; // Estado inicial da bomba
 
   // Conecta no broker MQTT WebSocket
-  const client = mqtt.connect(`wss://${host}:${port}/mqtt`);
+  const client = mqtt.connect(`ws://${host}:${port}/mqtt`);
 
   client.on("connect", () => {
     addLog("Conectado ao broker MQTT");
@@ -55,14 +66,24 @@
     addLog(`📩 ${topic}: ${message}`);
   });
 
-  function ligar() {
-    client.publish(topicLed, "liga");
-    addLog("📤 Enviado: liga");
-  }
+  function toggleBomba() {
+    const btn = document.getElementById("bombaBtn");
 
-  function desligar() {
-    client.publish(topicLed, "desliga");
-    addLog("📤 Enviado: desliga");
+    if (!bombaLigada) {
+      client.publish(topicBomba, "liga");
+      addLog("📤 Enviado: liga");
+      btn.textContent = "Desligar Bomba";
+      btn.classList.remove("off");
+      btn.classList.add("on");
+      bombaLigada = true;
+    } else {
+      client.publish(topicBomba, "desliga");
+      addLog("📤 Enviado: desliga");
+      btn.textContent = "Ligar Bomba";
+      btn.classList.remove("on");
+      btn.classList.add("off");
+      bombaLigada = false;
+    }
   }
 
   function addLog(text) {
